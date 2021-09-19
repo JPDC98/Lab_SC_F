@@ -27,22 +27,20 @@ void setup() {
   attachInterrupt(1,interrupcion_2,RISING);
 }
 
-  //Serial.print("RPS_1:");
-  //Serial.print(conteo_0*divisor);
-  //Serial.print("  RPS_2:");
-  //Serial.println(conteo_1*divisor);
-
-  
 void loop() {
   delay(1000/divisor);
-  conteo_0=0;
-  conteo_1=0;
   digitalWrite(TRIG,HIGH);
   delay(1);
   digitalWrite(TRIG,LOW);
   duracion = pulseIn(ECO,HIGH);
   distancia = duracion/58.2; 
   Serial.println(distancia);
+  Serial.print("RPS_1:");
+  Serial.print(conteo_0*divisor);
+  Serial.print("  RPS_2:");
+  Serial.println(conteo_1*divisor);
+  conteo_0=0;
+  conteo_1=0;
   if(distancia >= 50 and distancia < 60){
     analogWrite(llanta_1,190);
     analogWrite(llanta_2,190);
