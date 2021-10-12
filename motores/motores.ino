@@ -1,6 +1,6 @@
 #include <HCSR04.h>
 
-HCSR04 hc(6,7);
+HCSR04 hc(22,24);
 
 //Pines de interrupcion 
 int encoder0 = 2;
@@ -11,31 +11,34 @@ const int llanta_1=4;
 const int llanta_2=5;
 
 //Pines de led y alarma auditiva
-const int led=7;
-const int audio=8;
+const int led=50;
+const int audio=51;
 
 //-----------Variables para la medicion de la velocidad lineal y angular------------------
 volatile long pulsosEncoder0, pulsosEncoder1=0;//Contador de pulsos
 unsigned int rpm0, rpm1=0; //Contador de revoluciones
 float velocidad0, velocidad1=0;//velocidad de llantas
 unsigned long tiempoPasado,tiempoPresente=0; //variables para la obtencion del tiempo
-unsigned int totalRanuras=200;//cantidad de ranuras del encoder----¡¡¡¡¡¡¡¡¡Cambiar con la cantidad real de ranuras del encoder!!!!!!!!!
-const int diametroRueda=64;//mm
+unsigned int totalRanuras=20;//cantidad de ranuras del encoder----¡¡¡¡¡¡¡¡¡Cambiar con la cantidad real de ranuras del encoder!!!!!!!!!
+const int diametroRueda=70;//mm
 
 //----------Variable para la medicion de la distancia----------------------
 float distancia=0;
 //----------Variables de velocidad de motor--------------------------------
 //
-unsigned int velocidadMotor1, velocidadMotor2=0;//  0--255;
+unsigned int velocidadMotor1, velocidadMotor2=255;//  0--255;
 
 //--------Declaracion de funciones---------------------------
 void velocidadMotor();
 void cambioDeVelocidad(float);
 //------------------------------------------------------------
+void isrEncoder0();
+void isrEncoder1();
+
 
 void setup() {
  Serial.begin(115200);
- while(!Serial){}
+ while(!Serial){};
  
  pinMode(llanta_1,OUTPUT);
  pinMode(llanta_2,OUTPUT);
@@ -88,9 +91,9 @@ void loop() {
 }
 
 void velocidadMotor(){
-  rpm0=(60*1000/totalRanuras)/(millis()-tiempoPasado)*pulsosEncoder0;// Calculo de las revolucionespor minuto de la llanta 1
+  rpm0=(60*(1000/totalRanuras))/(millis()-tiempoPasado)*pulsosEncoder0;// Calculo de las revolucionespor minuto de la llanta 1
   velocidad0=(rpm0*3.1416*diametroRueda*60/1000000)*(1000/3600);// m/s
-  rpm1=(60*1000/totalRanuras)/(millis()-tiempoPasado)*pulsosEncoder1;
+  rpm1=(60*(1000/totalRanuras))/(millis()-tiempoPasado)*pulsosEncoder1;
   velocidad1=(rpm1*3.1416*diametroRueda*60/1000000)*(1000/3600);//  m/s
   //tiempoPasado=millis();
   pulsosEncoder0=pulsosEncoder1=0;

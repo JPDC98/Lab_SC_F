@@ -1,41 +1,40 @@
-
 #include <HCSR04.h>
 
-HCSR04 hc(6,7);
+HCSR04 hc(22,24);
 
 //Pines de interrupcion 
 int encoder0 = 2;
 int encoder1 = 3;
 
 //Pines de las llantas
-const int llanta_1=4;
-const int llanta_2=5;
+const int llanta_1=7;
+const int llanta_2=6;
 
 //Pines de led y alarma auditiva
-const int led=7;
-const int audio=8;
+const int led=50;
+const int audio=51;
 
 //-----------Variables para la medicion de la velocidad lineal y angular------------------
 volatile long pulsosEncoder0, pulsosEncoder1=0;//Contador de pulsos
 unsigned int rpm0, rpm1=0; //Contador de revoluciones
-double velocidad0, velocidad1=0;//velocidad de llantas
+float velocidad0, velocidad1=0;//velocidad de llantas
 unsigned long tiempoPasado=0; //variables para la obtencion del tiempo
-unsigned int totalRanuras=200;//cantidad de ranuras del encoder----¡¡¡¡¡¡¡¡¡Cambiar con la cantidad real de ranuras del encoder!!!!!!!!!
-const int diametroRueda=64;//mm
+unsigned int totalRanuras=20;//cantidad de ranuras del encoder----¡¡¡¡¡¡¡¡¡Cambiar con la cantidad real de ranuras del encoder!!!!!!!!!
+const int diametroRueda=70;//mm
 
-double velocidadMaxima=15;//m/s ¡¡¡¡¡¡Cambiar por el valor real de velocidad en m/s!!!!!!!!!!!!!!!!!
+double velocidadMaxima=0.5;//m/s ¡¡¡¡¡¡Cambiar por el valor real de velocidad en m/s!!!!!!!!!!!!!!!!!
 
 //----------Variable para la medicion de la distancia--------
 float distancia=0;
 //----------Variables de velocidad de motor------------------
 
-volatile unsigned int velocidadMotor1, velocidadMotor2=0;//  0--255;
+volatile unsigned int velocidadMotor1, velocidadMotor2=255;//  0--255;
 
 //----------Variables de pid---------------------------------
 
-double kp=2;
-double ki=5;
-double kd=1;
+double kp=0.1;
+double ki=3;
+double kd=3;
 //pid 0
 unsigned long tiempoPresente0,tiempoAnterior0=0;
 double deltaTiempo0,error0,errorAnterior0,entrada0,salida0,setPoint0;
@@ -53,12 +52,14 @@ double calculoPID_0(double);
 double calculoPID_1(double);
 int velocidadAPWM(double);
 double pwmAVelocidad(int);
+void isrEncoder0();
+void isrEncoder1();
 
 //-----------------------------------------------------------
 
 void setup() {
  Serial.begin(115200);
- while(!Serial){}
+ while(!Serial){};
  
  pinMode(llanta_1,OUTPUT);
  pinMode(llanta_2,OUTPUT);
@@ -136,9 +137,9 @@ void loop() {
 }
 
 void velocidadMotor(){
-  rpm0=(60*1000/totalRanuras)/(millis()-tiempoPasado)*pulsosEncoder0;// Calculo de las revolucionespor minuto de la llanta 1
+  rpm0=(60*(1000/totalRanuras))/(millis()-tiempoPasado)*pulsosEncoder0;// Calculo de las revolucionespor minuto de la llanta 1
   velocidad0=(rpm0*3.1416*diametroRueda*60/1000000)*(1000/3600);// m/s
-  rpm1=(60*1000/totalRanuras)/(millis()-tiempoPasado)*pulsosEncoder1;
+  rpm1=(60*(1000/totalRanuras))/(millis()-tiempoPasado)*pulsosEncoder1;
   velocidad1=(rpm1*3.1416*diametroRueda*60/1000000)*(1000/3600);//  m/s
   //tiempoPasado=millis();
   pulsosEncoder0=pulsosEncoder1=0;
@@ -230,14 +231,10 @@ double pwmAVelocidad(int valpwm){
 
   
 void isrEncoder0(){//contador de pulsos del encoder de la llanta 1
-  if(digitalRead(encoder0)){
     pulsosEncoder0++;      
-    }
   }
 
   
 void isrEncoder1(){//contador de pulsos del encoder de la llanta 2
-  if(digitalRead(encoder1)){
     pulsosEncoder1++;
-    }
   }
