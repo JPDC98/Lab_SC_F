@@ -3,27 +3,46 @@ const int llanta_1 = 6;
 const int llanta_2 = 7;
 const int encoder_1 = 2;
 const int encoder_2 = 3;
-const int pot = 0;
+const int trig = 5;
+const int eco_1 = 18;
+const int eco_2 = 19;
+const int dir_1_1 = 22;
+const int dir_1_2 = 23;
+const int dir_2_1 = 24;
+const int dir_2_2 = 25;
+
 //Constantes PID a cambiar
 double kp = 1.5;
 double kd = 1000;
 double ki = 0.00001;
-double cm_s_setpoint = 40;
+double cm_s_setpoint = 33;
 
 //Asignación de variables a utilizar
 volatile unsigned delta_1,delta_2,t_actual_1,t_pasado_1,delta_t_1,t_actual_2,t_pasado_2,delta_t_2 = 0;
 volatile unsigned espera_pas_1,espera_act_1,espera_1,espera_pas_2,espera_act_2,espera_2 = 0;
-double  pwm_1,pwm_2,cm_s_1,cm_s_2,cont_1,cont_2,velocidad = 0; 
+unsigned long t_in,t_out,t_T = 0;
+double  pwm_1,pwm_2,cm_s_1,cm_s_2 = 0; 
 double salida_PID_1,error_1,error_ant_1,integral_1,derivativo_1,total_1 = 0;
 double salida_PID_2,error_2,error_ant_2,integral_2,derivativo_2,total_2 = 0;
-
-
-//Inicio del programa
+int distancia = 0;
+//---------------------Inicio del programa----------------------
 void setup() {
   pinMode(llanta_1,OUTPUT);
   pinMode(llanta_2,OUTPUT);
+  pinMode(trig,OUTPUT);
+  pinMode(dir_1_1,OUTPUT);
+  pinMode(dir_1_2,OUTPUT);
+  pinMode(dir_2_1,OUTPUT);
+  pinMode(dir_2_2,OUTPUT);
+  digitalWrite(dir_1_1,HIGH);
+  digitalWrite(dir_1_2,LOW);
+  digitalWrite(dir_2_1,HIGH);
+  digitalWrite(dir_2_2,LOW);
+  analogWrite(trig,127);
   attachInterrupt(digitalPinToInterrupt(encoder_1),t_encoder_1,RISING);
   attachInterrupt(digitalPinToInterrupt(encoder_2),t_encoder_2,RISING);
+  attachInterrupt(digitalPinToInterrupt(eco_1),disparo_alto,RISING); 
+  attachInterrupt(digitalPinToInterrupt(eco_2),disparo_bajo,FALLING); 
   Serial.begin(115200);
 }
 
@@ -37,6 +56,7 @@ void t_encoder_1(){
     cm_s_1 = 45;
   }
 }
+
 void t_encoder_2(){
   t_actual_2 = millis();
   espera_pas_2 = millis();
@@ -46,6 +66,16 @@ void t_encoder_2(){
   if(cm_s_2 > 45){
     cm_s_2 = 45;
   } 
+}
+
+void disparo_alto(){
+    t_in = micros();
+}
+
+void disparo_bajo(){
+    t_out = micros();
+    t_T = t_out - t_in;
+    distancia = 0.017*t_T;
 }
 
 void loop() {
@@ -59,17 +89,20 @@ void loop() {
   if(espera_2 > 500){
     cm_s_2 = 0;
   }
+  Serial.print(cm_s_setpoint);
+  Serial.print("    ");
+  Serial.print(cm_s_1);
+  Serial.print("    ");
+  Serial.print(cm_s_2);
+  Serial.print("    ");
+  Serial.println(distancia);
   pwm_1 = calculoPID_1(cm_s_1);
   pwm_2 = calculoPID_2(cm_s_2);
-  Serial.print(cm_s_setpoint);
-  Serial.print("   ");
-  Serial.print(cm_s_1);
-  Serial.print("   ");
-  Serial.println(cm_s_2);
   analogWrite(llanta_1,pwm_1);
   analogWrite(llanta_2,pwm_2);
 }
 
+//--------------------CALCULOS DEL PID-------------------
 int calculoPID_1(int inpt_1){
   error_1 = cm_s_setpoint - inpt_1;
   integral_1 += error_1*delta_t_1;
