@@ -15,7 +15,7 @@ const int dir_2_2 = 25;
 double kp = 1.5;
 double kd = 1000;
 double ki = 0.00001;
-double cm_s_setpoint = 33;
+double cm_s_setpoint = 0;
 
 //Asignación de variables a utilizar
 volatile unsigned delta_1,delta_2,t_actual_1,t_pasado_1,delta_t_1,t_actual_2,t_pasado_2,delta_t_2 = 0;
@@ -89,15 +89,26 @@ void loop() {
   if(espera_2 > 500){
     cm_s_2 = 0;
   }
-  Serial.print(cm_s_setpoint);
-  Serial.print("    ");
-  Serial.print(cm_s_1);
-  Serial.print("    ");
-  Serial.print(cm_s_2);
-  Serial.print("    ");
-  Serial.println(distancia);
-  pwm_1 = calculoPID_1(cm_s_1);
-  pwm_2 = calculoPID_2(cm_s_2);
+  if (distancia > 100){
+    cm_s_setpoint = min(cm_s_1,cm_s_2);
+    pwm_1 = calculoPID_1(cm_s_1);
+    pwm_2 = calculoPID_2(cm_s_2);
+  }
+  else if (distancia > 50 && distancia < 100){
+    cm_s_setpoint = 34;
+    pwm_1 = calculoPID_1(cm_s_1);
+    pwm_2 = calculoPID_2(cm_s_2);
+  }
+  else if (distancia > 25 && distancia < 50){
+    cm_s_setpoint = 23;
+    pwm_1 = calculoPID_1(cm_s_1);
+    pwm_2 = calculoPID_2(cm_s_2);
+  }
+  else if (distancia < 25){
+    cm_s_setpoint = 0;
+    pwm_1 = 0;
+    pwm_2 = 0;
+  }
   analogWrite(llanta_1,pwm_1);
   analogWrite(llanta_2,pwm_2);
 }
