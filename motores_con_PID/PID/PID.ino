@@ -33,9 +33,8 @@ unsigned long t_in,t_out,t_T = 0;
 double salida_PID_1,error_1,error_ant_1,integral_1,derivativo_1,total_1 = 0;
 double salida_PID_2,error_2,error_ant_2,integral_2,derivativo_2,total_2 = 0;
 //Variables de resultados finales de sistemas de control del carro. 
-double cm_s_setpoint = 0;
-double  pwm_1,pwm_2,cm_s_1,cm_s_2 = 0; 
-int distancia = 0;
+double  pwm_1,pwm_2 = 0; 
+int distancia,cm_s_setpoint,cm_s_1,cm_s_2 = 0;
 
 
 //---------------------Inicio del programa----------------------
@@ -61,6 +60,7 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(eco_1),disparo_alto,RISING); 
   attachInterrupt(digitalPinToInterrupt(eco_2),disparo_bajo,FALLING); 
   envio.begin(115200);
+ 
 }
 //----------------Control de interrucion de enconder y generadores de distancias----------------
 void t_encoder_1(){
@@ -133,9 +133,9 @@ void loop() {
     pwm_1 = 0;
     pwm_2 = 0;
   }
-  envio.write(cm_s_setpoint);
-  envio.write(cm_s_1);
-  envio.write(cm_s_2);
+  envio.write( cm_s_setpoint);
+  envio.write( cm_s_1);
+  envio.write( cm_s_2);
   envio.write(distancia);
   analogWrite(llanta_1,pwm_1);
   analogWrite(llanta_2,pwm_2);
