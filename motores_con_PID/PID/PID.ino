@@ -59,8 +59,13 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(encoder_2),t_encoder_2,RISING);
   attachInterrupt(digitalPinToInterrupt(eco_1),disparo_alto,RISING); 
   attachInterrupt(digitalPinToInterrupt(eco_2),disparo_bajo,FALLING); 
+  envio.begin(9600);
+  envio.print("AT");
+  delay(1000);
+  envio.print("AT+BAUD");   
+  envio.print("8");
+  delay(1000);
   envio.begin(115200);
- 
 }
 //----------------Control de interrucion de enconder y generadores de distancias----------------
 void t_encoder_1(){
@@ -133,10 +138,11 @@ void loop() {
     pwm_1 = 0;
     pwm_2 = 0;
   }
-  envio.write( cm_s_setpoint);
-  envio.write( cm_s_1);
-  envio.write( cm_s_2);
-  envio.write(distancia);
+  envio.println(cm_s_setpoint);
+  envio.println(cm_s_1);
+  envio.println(cm_s_2);
+  envio.println(distancia);
+
   analogWrite(llanta_1,pwm_1);
   analogWrite(llanta_2,pwm_2);
 }
